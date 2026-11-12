@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=PlanLite Viewer
+GenericName=Project Schedule Viewer
+Comment=View Microsoft Project schedules: Gantt, critical path, baseline, resources
+Exec=planlite %f
+Icon=planlite
+Terminal=false
+Categories=Office;ProjectManagement;Viewer;
+MimeType=application/vnd.ms-project;application/x-project;application/x-msproject;application/msproject;
+StartupWMClass=planlite
+Keywords=MPP;Microsoft Project;Gantt;schedule;programme;Primavera;

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PlanLite Viewer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="dark">
+<header id="bar">
+  <div class="grp">
+    <button id="btnOpen" class="primary" title="Open a project file (Ctrl+O)">Open</button>
+    <button id="btnNew" title="Start a new, empty project">New</button>
+    <button id="btnPdf" title="Print or save as PDF, A4 to A0 (Ctrl+P)">PDF / Print</button>
+    <button id="btnXlsx" title="Save tasks, resources and assignments as an Excel workbook">Excel</button>
+  </div>
+  <div class="grp views" role="tablist" aria-label="Views">
+    <button data-view="gantt" class="on" role="tab">Gantt</button>
+    <button data-view="res" role="tab">Resources</button>
+  </div>
+  <div class="grp" id="ganttTools">
+    <button id="btnCrit" title="Highlight the critical path">Critical path</button>
+    <button id="btnBase" title="Show the saved baseline under each bar and variance columns">Baseline</button>
+    <button id="btnLinks" class="on" title="Show dependency arrows">Links</button>
+    <span class="sep"></span>
+    <button id="zoomOut" title="Zoom out (-)" aria-label="Zoom out">−</button>
+    <select id="selScale" title="Timescale" aria-label="Timescale">
+      <option value="fit">Whole project</option><option value="30">Days</option><option value="9">Weeks</option><option value="2.4">Months</option><option value="0.8">Quarters</option>
+    </select>
+    <button id="zoomIn" title="Zoom in (+)" aria-label="Zoom in">+</button>
+    <button id="btnToday" title="Scroll to today (T)">Today</button>
+    <span class="sep"></span>
+    <select id="selLevel" title="Outline level to show" aria-label="Outline level"></select>
+    <select id="selFilter" title="Filter tasks" aria-label="Filter tasks">
+      <option value="all">All tasks</option><option value="critical">Critical</option><option value="incomplete">Incomplete</option>
+      <option value="done">Completed</option><option value="milestone">Milestones</option><option value="late">Late vs baseline</option>
+    </select>
+    <input id="search" type="search" placeholder="Find task or resource" aria-label="Find task or resource">
+  </div>
+  <div class="grp right">
+    <button id="btnTheme" title="Switch light / dark">Light</button>
+  </div>
+</header>
+<div id="editbar" hidden>
+  <div class="grp">
+    <button id="edSave" class="primary" title="Save as Microsoft Project XML (Ctrl+S)">Save</button>
+    <button id="edUndo" title="Undo (Ctrl+Z)" disabled>Undo</button><button id="edRedo" title="Redo (Ctrl+Y)" disabled>Redo</button>
+  </div>
+  <div class="grp">
+    <button id="edAdd" title="Add a task below the selected one (Insert)">+ Task</button>
+    <button id="edAddMs" title="Add a milestone below the selected task">+ Milestone</button>
+    <button id="edEdit" title="Edit the selected task (Enter or double-click)">Edit</button>
+    <button id="edDel" title="Delete the selected task (Delete)">Delete</button>
+  </div>
+  <div class="grp">
+    <button id="edOut" title="Outdent: move one level up (Alt+Shift+Left)">← Outdent</button>
+    <button id="edIn" title="Indent: make it a subtask of the task above (Alt+Shift+Right)">Indent →</button>
+    <button id="edUp" title="Move up">↑</button><button id="edDown" title="Move down">↓</button>
+  </div>
+  <div class="grp">
+    <button id="edBase" title="Save the current dates as the baseline">Set baseline</button>
+    <button id="edProj" title="Project name, start date and working days">Project…</button>
+  </div>
+</div>
+<div id="summary" hidden></div>
+
+<main>
+  <section id="ganttView">
+    <div id="left">
+      <div id="thead"></div>
+      <div id="tbody"><div id="tinner"></div></div>
+    </div>
+    <div id="split" title="Drag to resize" role="separator" aria-orientation="vertical"></div>
+    <div id="right">
+      <canvas id="timeHead"></canvas>
+      <div id="chartScroll"><div id="chartSpacer"></div><canvas id="chart"></canvas></div>
+    </div>
+    <aside id="details" hidden></aside>
+  </section>
+  <section id="resView" hidden>
+    <div id="resCol"><div class="rbar"><button id="resAdd">+ Resource</button><button id="resRen">Rename</button><button id="resDel">Delete</button></div><div id="resList"></div></div>
+    <div id="resAsg"></div>
+  </section>
+  <div id="welcome">
+    <div class="card">
+      <h1>PlanLite Viewer</h1>
+      <p>Open a Microsoft Project file (<b>.mpp</b>, .mpt, .mpx, .xml) or a Primavera .xer, or drop one here.</p>
+      <button id="btnOpen2" class="primary big">Open project</button> <button id="btnNew2" class="big">New project</button>
+      <p id="engNote" class="muted small"></p>
+      <button id="engGo" hidden>Set up MPP support</button>
+      <p id="engMsg" class="muted small"></p>
+    </div>
+  </div>
+  <div id="busy" hidden><div class="spin"></div><span id="busyText">Working…</span></div>
+  <div id="toast" hidden></div>
+</main>
+
+<dialog id="dlgPdf">
+  <form method="dialog">
+    <h2>PDF / Print</h2>
+    <div class="frow">
+      <label>Paper <select id="pdfSize"><option>A4</option><option selected>A3</option><option>A2</option><option>A1</option><option>A0</option></select></label>
+      <label>Orientation <select id="pdfOri"><option value="l">Landscape</option><option value="p">Portrait</option></select></label>
+      <label>Timescale <select id="pdfScale"><option value="fit">Whole project on page width</option><option value="view">Same as on screen</option></select></label>
+    </div>
+    <p class="small muted">Prints the tasks currently shown (filter, outline level, critical path and baseline as on screen). In the print window choose "Save as PDF" as the destination and keep margins at "None" or "Default".</p>
+    <p class="small" id="pdfInfo"></p>
+    <div class="frow end"><button id="pdfCancel">Cancel</button><button type="button" id="pdfGo" class="primary">Continue to print</button></div>
+  </form>
+</dialog>
+<dialog id="dlgTask">
+  <form method="dialog">
+    <h2 id="tkTitle">Edit task</h2>
+    <div class="fgrid">
+      <label for="tkName">Name</label><input id="tkName" type="text">
+      <label for="tkDur">Duration</label><div><input id="tkDur" type="text" class="short"> <span class="small muted">e.g. 5d, 2w, 4h; 0 = milestone</span></div>
+      <label for="tkStart">Start</label><div><input id="tkStart" type="date"> <span class="small muted" id="tkStartNote">changing it sets "start no earlier than"</span></div>
+      <label for="tkCon">Constraint</label><div><select id="tkCon"></select> <input id="tkConDate" type="date"></div>
+      <label for="tkPct">% complete</label><div><input id="tkPct" type="number" min="0" max="100" step="5" class="short"></div>
+      <label for="tkPred">Predecessors</label><div><input id="tkPred" type="text"> <span class="small muted">task IDs, e.g. 5, 7SS+2d, 9FF</span></div>
+      <label for="tkRes">Resources</label><div><input id="tkRes" type="text" list="resNames"> <span class="small muted">names separated by commas; new names are added</span></div>
+      <label for="tkNotes">Notes</label><textarea id="tkNotes" rows="3"></textarea>
+    </div>
+    <p class="small warn" id="tkErr"></p>
+    <div class="frow end"><button id="tkCancel">Cancel</button><button type="button" id="tkOk" class="primary">Apply</button></div>
+  </form>
+  <datalist id="resNames"></datalist>
+</dialog>
+<dialog id="dlgProj">
+  <form method="dialog">
+    <h2 id="pjTitle">Project</h2>
+    <div class="fgrid">
+      <label for="pjName">Project name</label><input id="pjName" type="text">
+      <label for="pjStart">Start date</label><div><input id="pjStart" type="date"></div>
+      <label>Working days</label><div id="pjDays" class="days"></div>
+    </div>
+    <p class="small muted">Working hours are 08:00–12:00 and 13:00–17:00 for new projects; an opened file keeps its own hours and holidays.</p>
+    <p class="small warn" id="pjErr"></p>
+    <div class="frow end"><button id="pjCancel">Cancel</button><button type="button" id="pjOk" class="primary">Apply</button></div>
+  </form>
+</dialog>
+<div id="printRoot"></div>
+<input id="file" type="file" accept=".mpp,.mpt,.mpx,.xml,.xer,.pmxml,.pp,.planner,.gan,.pod,.sdef,.fts,.schedule_grid,.cdpx,.cdpz" hidden>
+<script src="model.js"></script>
+<script src="sched.js"></script>
+<script src="write.js"></script>
+<script src="app.js"></script>
+<script src="edit.js"></script>
+</body>
+</html>
