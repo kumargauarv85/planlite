@@ -7,6 +7,8 @@ as a Gantt chart with critical path, baseline comparison and resources, update
 it or build a new schedule, then save it as Project XML, print it to PDF or
 export it to Excel. No Windows, Wine or Project licence.
 
+![Gantt with critical path and baseline](screenshots/gantt.png)
+
 ## What it does
 
 - Opens **.mpp / .mpt** (Microsoft Project), **Project XML**, .mpx and
@@ -53,10 +55,15 @@ split tasks or effort-driven work, so a schedule that relies on those can come
 out differently from Microsoft Project after an edit. Check key dates after
 editing such files.
 
+| Editing a schedule | Resources |
+|---|---|
+| ![Editing](screenshots/editing.png) | ![Resources](screenshots/resources.png) |
+
 ## Install
 
 Any Linux (Bazzite, Fedora, Arch, openSUSE ...), no root needed:
 
+    curl -LO https://github.com/kumargauarv85/planlite/releases/download/v1.2.0/planlite-1.2.0-linux.tar.gz
     tar xzf planlite-1.2.0-linux.tar.gz
     cd planlite-1.2.0
     ./install.sh
